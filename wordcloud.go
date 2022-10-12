@@ -2,6 +2,8 @@ package wordclouds
 
 import (
 	"image"
+	"io"
+	"io/fs"
 	"math"
 	"math/rand"
 	"runtime"
@@ -11,6 +13,7 @@ import (
 	"time"
 
 	"github.com/fogleman/gg"
+	"github.com/golang/freetype/truetype"
 	"golang.org/x/image/font"
 )
 
@@ -132,7 +135,7 @@ func (w *Wordcloud) setFont(size float64) {
 	_, ok := w.fonts[size]
 
 	if !ok {
-		f, err := gg.LoadFontFace(w.opts.FontFile, size)
+		f, err := loadFontFace(w.opts.FontFile, size)
 		if err != nil {
 			panic(err)
 		}
@@ -392,4 +395,27 @@ func (w *Wordcloud) testRadius(radius float64, points []point, width float64, he
 		failed: true,
 		radius: radius,
 	}
+}
+
+// copy from gg.LoadFontFace
+func loadFontFace(file fs.File, points float64) (font.Face, error) {
+	fontBytes, err := io.ReadAll(file)
+	if err != nil {
+		return nil, err
+	}
+	if seeker, ok := file.(io.Seeker); ok {
+		_, err = seeker.Seek(0, io.SeekStart)
+		if err != nil {
+			return nil, err
+		}
+	}
+	f, err := truetype.Parse(fontBytes)
+	if err != nil {
+		return nil, err
+	}
+	face := truetype.NewFace(f, &truetype.Options{
+		Size: points,
+		// Hinting: font.HintingFull,
+	})
+	return face, nil
 }

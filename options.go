@@ -2,13 +2,14 @@ package wordclouds
 
 import (
 	"image/color"
+	"io/fs"
 )
 
 type Options struct {
 	FontMaxSize     int
 	FontMinSize     int
 	RandomPlacement bool
-	FontFile        string
+	FontFile        fs.File
 	Colors          []color.Color
 	BackgroundColor color.Color
 	Width           int
@@ -22,7 +23,7 @@ var defaultOptions = Options{
 	FontMaxSize:     500,
 	FontMinSize:     10,
 	RandomPlacement: false,
-	FontFile:        "",
+	FontFile:        nil,
 	Colors:          []color.Color{color.RGBA{}},
 	BackgroundColor: color.RGBA{R: 0xff, G: 0xff, B: 0xff, A: 0xff},
 	Width:           2048,
@@ -34,10 +35,10 @@ var defaultOptions = Options{
 
 type Option func(*Options)
 
-// Path to font file
-func FontFile(path string) Option {
+// Font file
+func FontFile(file fs.File) Option {
 	return func(options *Options) {
-		options.FontFile = path
+		options.FontFile = file
 	}
 }
 
